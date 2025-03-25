@@ -12,7 +12,6 @@ import base64
 from werkzeug.utils import secure_filename
 import matplotlib.pyplot as plt
 import os
-import re
 
 # Create a Flask app
 app = Flask(__name__)
@@ -25,9 +24,7 @@ def upload_form():
             <input type="file" name="file">
             <input type="submit" value="Upload">
             <p>This form allows you to upload a mongosync log file. Once the file is uploaded, the application will process the data and generate plots.</p>
-            <br/>
-            <br/>
-            <img src="static/image-1.png" width="624" height="913">
+            <img src="/path/to/image.jpg" alt="Description of image">
         </form>
     ''')
 
@@ -52,67 +49,27 @@ def upload_file():
         for line in tqdm(lines, desc="Reading lines"):
             try:
                 json.loads(line)
-                #print(line)
-                #print(json.loads(line).get('message').lower())
-                #if json.loads(line).get('message') == "Sent response.":
-                #    print(line)
             except json.JSONDecodeError:
                 print(f"Invalid JSON: {line}")
                 return redirect(request.url)  # or handle the error in another appropriate way
 
         # Load lines with 'message' == "Replication progress."
-        #data = [json.loads(line) for line in lines if json.loads(line).get('message') == "Replication progress."]
-        regex_pattern = re.compile(r"Replication progress", re.IGNORECASE)
-        data = [
-            json.loads(line) 
-            for line in lines 
-            if regex_pattern.search(json.loads(line).get('message', ''))
-        ]
+        data = [json.loads(line) for line in lines if json.loads(line).get('message') == "Replication progress."]
 
         # Load lines with 'message' == "Version info"
-        #version_info_list = [json.loads(line) for line in lines if json.loads(line).get('message') == "Version info"]
-        regex_pattern = re.compile(r"Version info", re.IGNORECASE)
-        version_info_list = [
-            json.loads(line) 
-            for line in lines 
-            if regex_pattern.search(json.loads(line).get('message', ''))
-        ]
+        version_info_list = [json.loads(line) for line in lines if json.loads(line).get('message') == "Version info"]
 
         # Load lines with 'message' == "Mongosync Options"
-        #mongosync_opts_list = [json.loads(line) for line in lines if json.loads(line).get('message') == "Mongosync Options"]
-        regex_pattern = re.compile(r"Mongosync Options", re.IGNORECASE)
-        mongosync_opts_list = [
-            json.loads(line) 
-            for line in lines 
-            if regex_pattern.search(json.loads(line).get('message', ''))
-        ]
+        mongosync_opts_list = [json.loads(line) for line in lines if json.loads(line).get('message') == "Mongosync Options"]
 
         # Load lines with 'message' == "Operation duration stats."
-        #mongosync_ops_stats = [json.loads(line) for line in lines if json.loads(line).get('message') == "Operation duration stats."]
-        regex_pattern = re.compile(r"Operation duration stats", re.IGNORECASE)
-        mongosync_ops_stats = [
-            json.loads(line) 
-            for line in lines 
-            if regex_pattern.search(json.loads(line).get('message', ''))
-        ]
+        mongosync_ops_stats = [json.loads(line) for line in lines if json.loads(line).get('message') == "Operation duration stats."]
 
         # Load lines with 'message' == "sent response"
-        #mongosync_sent_response = [json.loads(line) for line in lines if json.loads(line).get('message') == "Sent response."]
-        regex_pattern = re.compile(r"sent response", re.IGNORECASE)
-        mongosync_sent_response = [
-            json.loads(line) 
-            for line in lines 
-            if regex_pattern.search(json.loads(line).get('message', ''))
-        ]
-
-        #print(data)
-        #print(version_info_list)
-        #print(mongosync_opts_list)
-        #print(mongosync_ops_stats)
-        #print(mongosync_sent_response)
+        mongosync_sent_response = [json.loads(line) for line in lines if json.loads(line).get('message') == "sent response"]
 
         # The 'body' field is also a JSON string, so parse that as well
-        #mongosync_sent_response_body = json.loads(mongosync_sent_response.get('body'))
+        #mongosync_sent_response_body = json.loads(mongosync_sent_response['body'])
         for response in mongosync_sent_response:
             mongosync_sent_response_body  = json.loads(response['body'])
             # Now you can work with the 'body' data
@@ -175,7 +132,7 @@ def upload_file():
         CEADestinationWrite_numOperations = [float(item['CEADestinationWrite']['numOperations']) for item in mongosync_ops_stats if 'CEADestinationWrite' in item and 'numOperations' in item['CEADestinationWrite']] 
 
         # Extract the 'estimatedTotalBytes' and 'estimatedCopiedBytes' values
-        estimated_total_bytes = mongosync_sent_response_body['progress']['collectionCopy']['estimatedTotalBytes']
+        #estimated_total_bytes = mongosync_sent_response_body['progress']['collectionCopy']['estimatedTotalBytes']
 
         if 'progress' in mongosync_sent_response_body:
             estimated_total_bytes = mongosync_sent_response_body['progress']['collectionCopy']['estimatedTotalBytes']
