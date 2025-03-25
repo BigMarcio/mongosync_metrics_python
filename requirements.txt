@@ -28,4 +28,4 @@ six==1.16.0
 tenacity==8.2.3
 Werkzeug==3.0.1
 zipp==3.16.2
-tqm==4.66.1
+tqdm==4.66.1
