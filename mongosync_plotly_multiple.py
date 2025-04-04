@@ -278,7 +278,7 @@ def upload_file():
                                                             "Collection Copy Destination Write",
                                                             "CEA Source Read",
                                                             "CEA Destination Write",),
-                            specs=[[{"type": "table"}], [{"type": "table"}], [{}], [{"secondary_y": True}], [{"secondary_y": True}], [{}], [{}], [{}]])
+                            specs=[[{"type": "table"}], [{"type": "table"}], [{}], [{"secondary_y": True}], [{"secondary_y": True}], [{"secondary_y": True}], [{"secondary_y": True}], [{"secondary_y": True}]])
 
         # Add the version information as an annotation to the plot
         #fig.add_annotation( x=0.5, y=1.05, xref="paper", yref="paper", text=version_text, showarrow=False, font=dict(size=12))
@@ -303,20 +303,24 @@ def upload_file():
         fig.update_yaxes(title_text="Lag Time Seconds", secondary_y=True, row=4, col=1)
 
 
-        fig.add_trace(go.Scatter(x=times, y=CollectionCopySourceRead, mode='lines', name='Average (ms)'), row=5, col=1)
-        fig.add_trace(go.Scatter(x=times, y=CollectionCopySourceRead_maximum, mode='lines', name='Maximum (ms)'), row=5, col=1)
-        fig.add_trace(go.Scatter(x=times, y=CollectionCopySourceRead_numOperations, mode='lines', name='Operations'), row=5, col=1, secondary_y=True)
-        fig.update_yaxes(title_text="Average and Maximum (ms)", secondary_y=False, row=5, col=1)
+        fig.add_trace(go.Scatter(x=times, y=CollectionCopySourceRead, mode='lines', name='Average (ms) - Collection Copy Source Read'), row=5, col=1)
+        fig.add_trace(go.Scatter(x=times, y=CollectionCopySourceRead_maximum, mode='lines', name='Maximum (ms) - Collection Copy Source Read'), row=5, col=1)
+        fig.add_trace(go.Scatter(x=times, y=CollectionCopySourceRead_numOperations, mode='lines', name='Operations - Collection Copy Source Read'), row=5, col=1, secondary_y=True)
+        fig.update_yaxes(title_text="Avg and Max (ms)", secondary_y=False, row=5, col=1)
         fig.update_yaxes(title_text="Number of Operations", secondary_y=True, row=5, col=1)
 
 
-        fig.add_trace(go.Scatter(x=times, y=CollectionCopyDestinationWrite, mode='lines', name='Collection Copy Destination Write Average'), row=6, col=1)
-        fig.add_trace(go.Scatter(x=times, y=CollectionCopyDestinationWrite_maximum, mode='lines', name='Collection Copy Destination Write Maximum'), row=6, col=1)
-        fig.add_trace(go.Scatter(x=times, y=CollectionCopyDestinationWrite_numOperations, mode='lines', name='Collection Copy Destination Write Number of Operations'), row=6, col=1)
+        fig.add_trace(go.Scatter(x=times, y=CollectionCopyDestinationWrite, mode='lines', name='Average (ms) - Collection Copy Destination Write'), row=6, col=1)
+        fig.add_trace(go.Scatter(x=times, y=CollectionCopyDestinationWrite_maximum, mode='lines', name='Maximum (ms) - Collection Copy Destination Write'), row=6, col=1)
+        fig.add_trace(go.Scatter(x=times, y=CollectionCopyDestinationWrite_numOperations, mode='lines', name='Operations - Collection Copy Destination Write'), row=6, col=1, secondary_y=True)
+        fig.update_yaxes(title_text="Avg and Max (ms)", secondary_y=False, row=6, col=1)
+        fig.update_yaxes(title_text="Number of Operations", secondary_y=True, row=6, col=1)
 
-        fig.add_trace(go.Scatter(x=times, y=CEASourceRead, mode='lines', name='CEA Source Read Average'), row=7, col=1)
-        fig.add_trace(go.Scatter(x=times, y=CEASourceRead_maximum, mode='lines', name='CEA Source Read Maximum'), row=7, col=1)
-        fig.add_trace(go.Scatter(x=times, y=CEASourceRead_numOperations, mode='lines', name='CEA Source Read Number of Operations'), row=7, col=1)
+        fig.add_trace(go.Scatter(x=times, y=CEASourceRead, mode='lines', name='Average (ms) - CEA Source Read'), row=7, col=1)
+        fig.add_trace(go.Scatter(x=times, y=CEASourceRead_maximum, mode='lines', name='Maximum (ms) - CEA Source Read'), row=7, col=1)
+        fig.add_trace(go.Scatter(x=times, y=CEASourceRead_numOperations, mode='lines', name='Operations - CEA Source Read'), row=7, col=1, secondary_y=True)
+        fig.update_yaxes(title_text="Avg and Max (ms)", secondary_y=False, row=7, col=1)
+        fig.update_yaxes(title_text="Number of Operations", secondary_y=True, row=7, col=1)
 
         fig.add_trace(go.Scatter(x=times, y=CEADestinationWrite, mode='lines', name='CEA Destination Write Average'), row=8, col=1)
         fig.add_trace(go.Scatter(x=times, y=CEADestinationWrite_maximum, mode='lines', name='CEA Destination Write Maximum'), row=8, col=1)
