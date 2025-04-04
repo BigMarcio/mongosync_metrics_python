@@ -220,9 +220,6 @@ def upload_file():
             totalEventsApplied = [item['totalEventsApplied'] for item in data if 'totalEventsApplied' in item]
             lagTimeSeconds = [item['lagTimeSeconds'] for item in data if 'lagTimeSeconds' in item]
 
-            # Add the table trace to the figure
-            #fig.add_trace(table_trace, row=7, col=1)
-
             # If the key is 'hiddenFlags', extract its keys and values and add them to the keys and values lists
             for i, key in enumerate(keys):
                 if key == 'hiddenFlags':
@@ -291,8 +288,8 @@ def upload_file():
 
         # Create a bar chart
         #fig = go.Figure(data=[go.Bar(name='Estimated Total Bytes', x=['Bytes'], y=[estimated_total_bytes], row=1, col=1), go.Bar(name='Estimated Copied Bytes', x=['Bytes'], y=[estimated_copied_bytes])], row=1, col=1)
-        fig.add_trace( go.Bar( name='Total',  x=[estimated_total_bytes_unit],  y=[estimated_total_bytes] ), row=3, col=1)
-        fig.add_trace( go.Bar( name='Copied', x=[estimated_total_bytes_unit],  y=[estimated_copied_bytes]), row=3, col=1)
+        fig.add_trace( go.Bar( name='Total - ' + estimated_total_bytes_unit,  x=[estimated_total_bytes_unit],  y=[estimated_total_bytes] ), row=3, col=1)
+        fig.add_trace( go.Bar( name='Copied - ' + estimated_total_bytes_unit, x=[estimated_total_bytes_unit],  y=[estimated_copied_bytes]), row=3, col=1)
 
         # Add traces
 
@@ -302,13 +299,11 @@ def upload_file():
         fig.update_yaxes(title_text="Total Events Applied", secondary_y=False, row=4, col=1)
         fig.update_yaxes(title_text="Lag Time Seconds", secondary_y=True, row=4, col=1)
 
-
         fig.add_trace(go.Scatter(x=times, y=CollectionCopySourceRead, mode='lines', name='Average (ms) - Collection Copy Source Read'), row=5, col=1)
         fig.add_trace(go.Scatter(x=times, y=CollectionCopySourceRead_maximum, mode='lines', name='Maximum (ms) - Collection Copy Source Read'), row=5, col=1)
         fig.add_trace(go.Scatter(x=times, y=CollectionCopySourceRead_numOperations, mode='lines', name='Operations - Collection Copy Source Read'), row=5, col=1, secondary_y=True)
         fig.update_yaxes(title_text="Avg and Max (ms)", secondary_y=False, row=5, col=1)
         fig.update_yaxes(title_text="Number of Operations", secondary_y=True, row=5, col=1)
-
 
         fig.add_trace(go.Scatter(x=times, y=CollectionCopyDestinationWrite, mode='lines', name='Average (ms) - Collection Copy Destination Write'), row=6, col=1)
         fig.add_trace(go.Scatter(x=times, y=CollectionCopyDestinationWrite_maximum, mode='lines', name='Maximum (ms) - Collection Copy Destination Write'), row=6, col=1)
@@ -322,9 +317,11 @@ def upload_file():
         fig.update_yaxes(title_text="Avg and Max (ms)", secondary_y=False, row=7, col=1)
         fig.update_yaxes(title_text="Number of Operations", secondary_y=True, row=7, col=1)
 
-        fig.add_trace(go.Scatter(x=times, y=CEADestinationWrite, mode='lines', name='CEA Destination Write Average'), row=8, col=1)
-        fig.add_trace(go.Scatter(x=times, y=CEADestinationWrite_maximum, mode='lines', name='CEA Destination Write Maximum'), row=8, col=1)
-        fig.add_trace(go.Scatter(x=times, y=CEADestinationWrite_numOperations, mode='lines', name='CEA Destination Write Number of Operations'), row=8, col=1)
+        fig.add_trace(go.Scatter(x=times, y=CEADestinationWrite, mode='lines', name='Average (ms) - CEA Destination Write'), row=8, col=1)
+        fig.add_trace(go.Scatter(x=times, y=CEADestinationWrite_maximum, mode='lines', name='Maximum (ms) - CEA Destination Write'), row=8, col=1)
+        fig.add_trace(go.Scatter(x=times, y=CEADestinationWrite_numOperations, mode='lines', name='Operations - CEA Destination Write'), row=8, col=1, secondary_y=True)
+        fig.update_yaxes(title_text="Avg and Max (ms)", secondary_y=False, row=8, col=1)
+        fig.update_yaxes(title_text="Number of Operations", secondary_y=True, row=8, col=1)
         
 
         # Update layout
