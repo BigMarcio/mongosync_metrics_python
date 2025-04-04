@@ -21,14 +21,21 @@ app = Flask(__name__)
 def upload_form():
     # Return a simple file upload form
     return render_template_string('''
-        <form method="post" action="/upload" enctype="multipart/form-data">
-            <input type="file" name="file">
-            <input type="submit" value="Upload">
-            <p>This form allows you to upload a mongosync log file. Once the file is uploaded, the application will process the data and generate plots.</p>
-            <br/>
-            <br/>
-            <img src="static/image-1.png" width="624" height="913">
-        </form>
+        <html>
+            <head>
+                <title>Mongosync Metrics</title>
+            </head>
+            <body>
+                <form method="post" action="/upload" enctype="multipart/form-data">
+                    <input type="file" name="file">
+                    <input type="submit" value="Upload">
+                    <p>This form allows you to upload a mongosync log file. Once the file is uploaded, the application will process the data and generate plots.</p>
+                    <br/>
+                    <br/>
+                    <img src="static/image-1.png" width="624" height="913">
+                </form>
+            </body>
+        </html>
     ''')
 
 @app.route('/upload', methods=['POST'])
@@ -233,7 +240,7 @@ def upload_file():
                             specs=[[{"type": "table"}], [{"type": "table"}], [{}], [{}], [{}], [{}], [{}], [{}]])
 
         # Add the version information as an annotation to the plot
-        fig.add_annotation( x=0.5, y=1.05, xref="paper", yref="paper", text=version_text, showarrow=False, font=dict(size=12))
+        #fig.add_annotation( x=0.5, y=1.05, xref="paper", yref="paper", text=version_text, showarrow=False, font=dict(size=12))
 
         #Add the Mongosync options
         fig.add_trace(table_trace, row=1, col=1)
@@ -269,19 +276,25 @@ def upload_file():
         
 
         # Update layout
-        fig.update_layout(height=1800, width=1250, title_text="Replication Progress")
+        fig.update_layout(height=1800, width=1250, title_text="Replication Progress - " + version_text)
 
         # Convert the figure to JSON
         plot_json = json.dumps(fig, cls=PlotlyJSONEncoder)
 
         # Render the plot in the browser
         return render_template_string('''
-            <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-            <div id="plot"></div>
-            <script>
-            var plot = {{ plot_json | safe }};
-            Plotly.newPlot('plot', plot.data, plot.layout);
-            </script>
+            <html>
+                <head>
+                    <title>Mongosync Metrics</title>
+                </head>
+            <body>
+                    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+                    <div id="plot"></div>
+                    <script>
+                    var plot = {{ plot_json | safe }};
+                    Plotly.newPlot('plot', plot.data, plot.layout);
+                    </script>
+            </body>
         ''', plot_json=plot_json)
     
 @app.route('/plot')
