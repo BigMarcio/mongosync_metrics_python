@@ -14,6 +14,52 @@ import matplotlib.pyplot as plt
 import os
 import re
 
+def format_byte_size(bytes):
+    # Define the conversion factors
+    kilobyte = 1024
+    megabyte = kilobyte * 1024
+    gigabyte = megabyte * 1024
+    terabyte = gigabyte * 1024
+    # Determine the appropriate unit and calculate the value
+    if bytes >= terabyte:
+        value = bytes / terabyte
+        unit = 'TeraBytes'
+    elif bytes >= gigabyte:
+        value = bytes / gigabyte
+        unit = 'GigaBytes'
+    elif bytes >= megabyte:
+        value = bytes / megabyte
+        unit = 'MegaBytes'
+    elif bytes >= kilobyte:
+        value = bytes / kilobyte
+        unit = 'KiloBytes'
+    else:
+        value = bytes
+        unit = 'Bytes'
+    # Return the value rounded to two decimal places and the unit separately
+    return round(value, 4), unit
+
+def convert_bytes(bytes, target_unit):
+    # Define conversion factors
+    kilobyte = 1024
+    megabyte = kilobyte * 1024
+    gigabyte = megabyte * 1024
+    terabyte = gigabyte * 1024
+    # Perform conversion based on target unit
+    if target_unit == 'KiloBytes':
+        value = bytes / kilobyte
+    elif target_unit == 'MegaBytes':
+        value = bytes / megabyte
+    elif target_unit == 'GigaBytes':
+        value = bytes / gigabyte
+    elif target_unit == 'TeraBytes':
+        value = bytes / terabyte
+    else:
+        value = bytes
+    # Return the converted value rounded to two decimal places and the unit
+    return round(value, 4)
+
+
 # Create a Flask app
 app = Flask(__name__)
 
@@ -206,38 +252,33 @@ def upload_file():
         CEADestinationWrite = [float(item['CEADestinationWrite']['averageDurationMs']) for item in mongosync_ops_stats if 'CEADestinationWrite' in item and 'averageDurationMs' in item['CEADestinationWrite']]
         CEADestinationWrite_maximum = [float(item['CEADestinationWrite']['maximumDurationMs']) for item in mongosync_ops_stats if 'CEADestinationWrite' in item and 'maximumDurationMs' in item['CEADestinationWrite']]    
         CEADestinationWrite_numOperations = [float(item['CEADestinationWrite']['numOperations']) for item in mongosync_ops_stats if 'CEADestinationWrite' in item and 'numOperations' in item['CEADestinationWrite']] 
-
-        # Extract the 'estimatedTotalBytes' and 'estimatedCopiedBytes' values
-        estimated_total_bytes = mongosync_sent_response_body['progress']['collectionCopy']['estimatedTotalBytes']
-
-        if 'progress' in mongosync_sent_response_body:
-            estimated_total_bytes = mongosync_sent_response_body['progress']['collectionCopy']['estimatedTotalBytes']
-        #    fig.add_trace( go.Bar( name='Estimated Total Bytes',  x=['Bytes'],  y=[estimated_total_bytes] ), row=1, col=1)
-        else:
-            print("Key 'progress' not found in mongosync_sent_response_body")
-        #estimated_copied_bytes = mongosync_sent_response_body['progress']['collectionCopy']['estimatedCopiedBytes']
-        # Initialize estimated_total_bytes with a default value
+        
+        # Initialize estimated_total_bytes and estimated_copied_bytes with a default value
         estimated_total_bytes = 0
         estimated_copied_bytes = 0
 
         if 'progress' in mongosync_sent_response_body:
             estimated_total_bytes = mongosync_sent_response_body['progress']['collectionCopy']['estimatedTotalBytes']
+            estimated_copied_bytes = mongosync_sent_response_body['progress']['collectionCopy']['estimatedCopiedBytes']
+        else:
+            print("Key 'progress' not found in mongosync_sent_response_body")
 
-        #fig.add_trace( go.Bar( name='Estimated Total Bytes',  x=['Bytes'],  y=[estimated_total_bytes] ), row=1, col=1)
-
-        #estimated_copied_time = mongosync_sent_response_body['time']
-
+        estimated_total_bytes, estimated_total_bytes_unit = format_byte_size(estimated_total_bytes)
+        estimated_copied_bytes = convert_bytes(estimated_copied_bytes, estimated_total_bytes_unit)
+        
+        #print(estimated_total_bytes)
+        #print(estimated_copied_bytes)
 
         # Create a subplot for the scatter plots and a separate subplot for the table
         fig = make_subplots(rows=8, cols=1, subplot_titles=("MongoSync Options", 
                                                             "MongoSync Hidden Options",
-                                                            "Estimated Copied Bytes",
+                                                            "Estimated Total and Copied " + estimated_total_bytes_unit,
                                                             "Total Events Applied",
                                                             "Collection Copy Source Read",
                                                             "Collection Copy Destination Write",
                                                             "CEA Source Read",
                                                             "CEA Destination Write",),
-                            specs=[[{"type": "table"}], [{"type": "table"}], [{}], [{}], [{}], [{}], [{}], [{}]])
+                            specs=[[{"type": "table"}], [{"type": "table"}], [{}], [{"secondary_y": True}], [{}], [{}], [{}], [{}]])
 
         # Add the version information as an annotation to the plot
         #fig.add_annotation( x=0.5, y=1.05, xref="paper", yref="paper", text=version_text, showarrow=False, font=dict(size=12))
@@ -250,17 +291,24 @@ def upload_file():
 
         # Create a bar chart
         #fig = go.Figure(data=[go.Bar(name='Estimated Total Bytes', x=['Bytes'], y=[estimated_total_bytes], row=1, col=1), go.Bar(name='Estimated Copied Bytes', x=['Bytes'], y=[estimated_copied_bytes])], row=1, col=1)
-        fig.add_trace( go.Bar( name='Estimated Total Bytes',  x=['Bytes'],  y=[estimated_total_bytes] ), row=3, col=1)
-        fig.add_trace( go.Bar( name='Estimated Copied Bytes', x=['Bytes'],  y=[estimated_copied_bytes]), row=3, col=1)
-        # If times is also a single value
-#        fig.add_trace(go.Scatter(x=[times], y=[estimated_copied_bytes], mode='lines', name='Estimated Copied Bytes Line'), row=3, col=1)
-
-        # Or if times is a list of values
-#        fig.add_trace(go.Scatter(x=times, y=[estimated_copied_bytes]*len(times), mode='lines', name='Estimated Copied Bytes Line'), row=3, col=1)
+        fig.add_trace( go.Bar( name='Estimated Total ' + estimated_total_bytes_unit,  x=[estimated_total_bytes_unit],  y=[estimated_total_bytes] ), row=3, col=1)
+        fig.add_trace( go.Bar( name='Estimated Copied ' + estimated_total_bytes_unit, x=[estimated_total_bytes_unit],  y=[estimated_copied_bytes]), row=3, col=1)
 
         # Add traces
+        #fig.add_trace(go.Scatter(x=times, y=totalEventsApplied, mode='lines', name='Total Events Applied'), row=4, col=1)
+        #fig.add_trace(go.Scatter(x=times, y=lagTimeSeconds, mode='lines', name='Lag Time Seconds'), row=4, col=1)
+
+        # Adicione o primeiro trace ao eixo Y primário
         fig.add_trace(go.Scatter(x=times, y=totalEventsApplied, mode='lines', name='Total Events Applied'), row=4, col=1)
-        fig.add_trace(go.Scatter(x=times, y=lagTimeSeconds, mode='lines', name='Lag Time Seconds'), row=4, col=1)
+
+        # Adicione o segundo trace, indicando que ele usa o eixo Y secundário
+        fig.add_trace(go.Scatter(x=times, y=lagTimeSeconds, mode='lines', name='Lag Time Seconds'), row=4, col=1, secondary_y=True)
+
+        # Opcionalmente, você pode definir os títulos dos eixos usando update_yaxes
+        fig.update_yaxes(title_text="Total Events Applied", secondary_y=False, row=4, col=1)
+        fig.update_yaxes(title_text="Lag Time Seconds", secondary_y=True, row=4, col=1)
+        
+
         fig.add_trace(go.Scatter(x=times, y=CollectionCopySourceRead, mode='lines', name='Collection Copy Source Read Average'), row=5, col=1)
         fig.add_trace(go.Scatter(x=times, y=CollectionCopySourceRead_maximum, mode='lines', name='Collection Copy Source Read Maximum'), row=5, col=1)
         fig.add_trace(go.Scatter(x=times, y=CollectionCopySourceRead_numOperations, mode='lines', name='Collection Copy Source Read Number of Operations'), row=5, col=1)
