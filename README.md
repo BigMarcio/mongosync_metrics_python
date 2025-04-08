@@ -62,9 +62,3 @@ The method for uploading the `mongosync` log file depends on how the application
 Once the `mongosync` log file is uploaded, the application processes the data and generates the plots. You can view these plots by navigating to the appropriate page in the application. The exact method depends on how the application is designed, but typically, you would click on a link or button, or navigate to a specific URL.
 
 If the plots aren't immediately visible after uploading the file, you may need to refresh the page. If the plots still aren't visible, check for any error messages or notifications from the application.
-
-## ToDo
-
-- Test with multiple mongosync versions, only tested with 1.6.1.
-- Certified the time lines.
-- Create more metrics with "TRACE" debug level
