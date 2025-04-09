@@ -10,22 +10,6 @@ This Python script processes JSON data and generates various plots using Plotly.
 
 The script uses the Plotly library for creating the plots and the pandas library for data manipulation. It also uses the datetime library for handling time data.
 
-## Dockerfile
-
-The Dockerfile is used to create a Docker image of the application. The Docker image includes the Python environment with all the necessary dependencies installed, as well as the Python script itself.
-
-To build the Docker image, navigate to the directory containing the Dockerfile and run the following command:
-
-```bash
-docker build -t my-python-app .
-```
-
-To run the Docker container, use the following command:
-
-```bash
-docker run -it --rm --name my-running-app my-python-app
-```
-
 ## requirements.txt
 
 The `requirements.txt` file lists the Python packages that the script depends on. The packages are specified with their version numbers to ensure compatibility.          
@@ -62,3 +46,19 @@ The method for uploading the `mongosync` log file depends on how the application
 Once the `mongosync` log file is uploaded, the application processes the data and generates the plots. You can view these plots by navigating to the appropriate page in the application. The exact method depends on how the application is designed, but typically, you would click on a link or button, or navigate to a specific URL.
 
 If the plots aren't immediately visible after uploading the file, you may need to refresh the page. If the plots still aren't visible, check for any error messages or notifications from the application.
+
+## Dockerfile
+
+The Dockerfile is used to create a Docker image of the application. The Docker image includes the Python environment with all the necessary dependencies installed, as well as the Python script itself.
+
+To build the Docker image, navigate to the directory containing the Dockerfile and run the following command:
+
+```bash
+docker build -t my-python-app .
+```
+
+To run the Docker container, use the following command:
+
+```bash
+docker run -it --rm --name my-running-app my-python-app
+```
