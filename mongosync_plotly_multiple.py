@@ -286,46 +286,52 @@ def upload_file():
         #Add the Mongosync options
         fig.add_trace(table_hiddenflags, row=2, col=1)
 
-        # Create a bar chart
-        #fig = go.Figure(data=[go.Bar(name='Estimated Total Bytes', x=['Bytes'], y=[estimated_total_bytes], row=1, col=1), go.Bar(name='Estimated Copied Bytes', x=['Bytes'], y=[estimated_copied_bytes])], row=1, col=1)
-        fig.add_trace( go.Bar( name='Total - ' + estimated_total_bytes_unit,  x=[estimated_total_bytes_unit],  y=[estimated_total_bytes] ), row=3, col=1)
-        fig.add_trace( go.Bar( name='Copied - ' + estimated_total_bytes_unit, x=[estimated_total_bytes_unit],  y=[estimated_copied_bytes]), row=3, col=1)
-
         # Add traces
 
+        # Create a bar chart
+        #fig = go.Figure(data=[go.Bar(name='Estimated Total Bytes', x=['Bytes'], y=[estimated_total_bytes], row=1, col=1), go.Bar(name='Estimated Copied Bytes', x=['Bytes'], y=[estimated_copied_bytes])], row=1, col=1)
+        fig.add_trace( go.Bar( name='Total - ' + estimated_total_bytes_unit,  x=[estimated_total_bytes_unit],  y=[estimated_total_bytes], legendgroup="group3" ), row=3, col=1)
+        fig.add_trace( go.Bar( name='Copied - ' + estimated_total_bytes_unit, x=[estimated_total_bytes_unit],  y=[estimated_copied_bytes], legendgroup="group3"), row=3, col=1)
+
         # Total Events Applied
-        fig.add_trace(go.Scatter(x=times, y=totalEventsApplied, mode='lines', name='Total Events Applied'), row=4, col=1)
-        fig.add_trace(go.Scatter(x=times, y=lagTimeSeconds, mode='lines', name='Lag Time Seconds'), row=4, col=1, secondary_y=True)
+        fig.add_trace(go.Scatter(x=times, y=totalEventsApplied, mode='lines', name='Total Events Applied', legendgroup="group4"), row=4, col=1)
+        fig.add_trace(go.Scatter(x=times, y=lagTimeSeconds, mode='lines', name='Lag Time Seconds', legendgroup="group4"), row=4, col=1, secondary_y=True)
         fig.update_yaxes(title_text="Total Events Applied", secondary_y=False, row=4, col=1)
         fig.update_yaxes(title_text="Lag Time Seconds", secondary_y=True, row=4, col=1)
 
-        fig.add_trace(go.Scatter(x=times, y=CollectionCopySourceRead, mode='lines', name='Average (ms) - Collection Copy Source Read'), row=5, col=1)
-        fig.add_trace(go.Scatter(x=times, y=CollectionCopySourceRead_maximum, mode='lines', name='Maximum (ms) - Collection Copy Source Read'), row=5, col=1)
-        fig.add_trace(go.Scatter(x=times, y=CollectionCopySourceRead_numOperations, mode='lines', name='Operations - Collection Copy Source Read'), row=5, col=1, secondary_y=True)
+        fig.add_trace(go.Scatter(x=times, y=CollectionCopySourceRead, mode='lines', name='Average (ms) - Collection Copy Source Read', legendgroup="group5"), row=5, col=1)
+        fig.add_trace(go.Scatter(x=times, y=CollectionCopySourceRead_maximum, mode='lines', name='Maximum (ms) - Collection Copy Source Read', legendgroup="group5"), row=5, col=1)
+        fig.add_trace(go.Scatter(x=times, y=CollectionCopySourceRead_numOperations, mode='lines', name='Operations - Collection Copy Source Read', legendgroup="group5"), row=5, col=1, secondary_y=True)
         fig.update_yaxes(title_text="Avg and Max (ms)", secondary_y=False, row=5, col=1)
         fig.update_yaxes(title_text="Number of Operations", secondary_y=True, row=5, col=1)
 
-        fig.add_trace(go.Scatter(x=times, y=CollectionCopyDestinationWrite, mode='lines', name='Average (ms) - Collection Copy Destination Write'), row=6, col=1)
-        fig.add_trace(go.Scatter(x=times, y=CollectionCopyDestinationWrite_maximum, mode='lines', name='Maximum (ms) - Collection Copy Destination Write'), row=6, col=1)
-        fig.add_trace(go.Scatter(x=times, y=CollectionCopyDestinationWrite_numOperations, mode='lines', name='Operations - Collection Copy Destination Write'), row=6, col=1, secondary_y=True)
+        fig.add_trace(go.Scatter(x=times, y=CollectionCopyDestinationWrite, mode='lines', name='Average (ms) - Collection Copy Destination Write', legendgroup="group6"), row=6, col=1)
+        fig.add_trace(go.Scatter(x=times, y=CollectionCopyDestinationWrite_maximum, mode='lines', name='Maximum (ms) - Collection Copy Destination Write', legendgroup="group6"), row=6, col=1)
+        fig.add_trace(go.Scatter(x=times, y=CollectionCopyDestinationWrite_numOperations, mode='lines', name='Operations - Collection Copy Destination Write', legendgroup="group6"), row=6, col=1, secondary_y=True)
         fig.update_yaxes(title_text="Avg and Max (ms)", secondary_y=False, row=6, col=1)
         fig.update_yaxes(title_text="Number of Operations", secondary_y=True, row=6, col=1)
 
-        fig.add_trace(go.Scatter(x=times, y=CEASourceRead, mode='lines', name='Average (ms) - CEA Source Read'), row=7, col=1)
-        fig.add_trace(go.Scatter(x=times, y=CEASourceRead_maximum, mode='lines', name='Maximum (ms) - CEA Source Read'), row=7, col=1)
-        fig.add_trace(go.Scatter(x=times, y=CEASourceRead_numOperations, mode='lines', name='Operations - CEA Source Read'), row=7, col=1, secondary_y=True)
+        fig.add_trace(go.Scatter(x=times, y=CEASourceRead, mode='lines', name='Average (ms) - CEA Source Read', legendgroup="group7"), row=7, col=1)
+        fig.add_trace(go.Scatter(x=times, y=CEASourceRead_maximum, mode='lines', name='Maximum (ms) - CEA Source Read', legendgroup="group7"), row=7, col=1)
+        fig.add_trace(go.Scatter(x=times, y=CEASourceRead_numOperations, mode='lines', name='Operations - CEA Source Read', legendgroup="group7"), row=7, col=1, secondary_y=True)
         fig.update_yaxes(title_text="Avg and Max (ms)", secondary_y=False, row=7, col=1)
         fig.update_yaxes(title_text="Number of Operations", secondary_y=True, row=7, col=1)
 
-        fig.add_trace(go.Scatter(x=times, y=CEADestinationWrite, mode='lines', name='Average (ms) - CEA Destination Write'), row=8, col=1)
-        fig.add_trace(go.Scatter(x=times, y=CEADestinationWrite_maximum, mode='lines', name='Maximum (ms) - CEA Destination Write'), row=8, col=1)
-        fig.add_trace(go.Scatter(x=times, y=CEADestinationWrite_numOperations, mode='lines', name='Operations - CEA Destination Write'), row=8, col=1, secondary_y=True)
+        fig.add_trace(go.Scatter(x=times, y=CEADestinationWrite, mode='lines', name='Average (ms) - CEA Destination Write', legendgroup="group8"), row=8, col=1)
+        fig.add_trace(go.Scatter(x=times, y=CEADestinationWrite_maximum, mode='lines', name='Maximum (ms) - CEA Destination Write', legendgroup="group8"), row=8, col=1)
+        fig.add_trace(go.Scatter(x=times, y=CEADestinationWrite_numOperations, mode='lines', name='Operations - CEA Destination Write', legendgroup="group8"), row=8, col=1, secondary_y=True)
         fig.update_yaxes(title_text="Avg and Max (ms)", secondary_y=False, row=8, col=1)
         fig.update_yaxes(title_text="Number of Operations", secondary_y=True, row=8, col=1)
-        
 
         # Update layout
-        fig.update_layout(height=1800, width=1250, title_text="Replication Progress - " + version_text)
+        fig.update_layout(height=1800, width=1250, title_text="Replication Progress - " + version_text, legend_tracegroupgap=172)
+
+        fig.update_layout(
+            legend=dict(
+                y=0.74
+            )
+        )
+
 
         # Convert the figure to JSON
         plot_json = json.dumps(fig, cls=PlotlyJSONEncoder)
