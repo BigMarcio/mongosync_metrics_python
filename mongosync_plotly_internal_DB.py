@@ -93,7 +93,8 @@ def gatherMetrics():
                     format='%(asctime)s - %(levelname)s - %(message)s')
     #TARGET_MONGO_URI = "mongodb+srv://poc:poc@syncmonitor.qteeb.mongodb.net/?retryWrites=true&w=majority&appName=syncMonitor&timeoutMS=10900000&connectTimeoutMS=10800000"
     #TARGET_MONGO_URI = "mongodb://127.0.0.1:27020,127.0.0.1:27021,127.0.0.1:27022/"
-    TARGET_MONGO_URI = "mongodb://127.0.0.1:27023,127.0.0.1:27024,127.0.0.1:27025/"
+    #TARGET_MONGO_URI = "mongodb://127.0.0.1:27023,127.0.0.1:27024,127.0.0.1:27025/"
+    TARGET_MONGO_URI = "mongodb://127.0.0.1:27026,127.0.0.1:27027,127.0.0.1:27028/"
     internalDb = "mongosync_reserved_for_internal_use"
     colors = ['red', 'blue', 'green', 'orange', 'yellow']
     # Connect to MongoDB cluster
@@ -106,16 +107,16 @@ def gatherMetrics():
         exit(1)
     # Create a subplot for the scatter plots and a separate subplot for the table
     fig = make_subplots(rows=3, 
-                        cols=4, 
-                        subplot_titles=("MongoSync State", 
-                                        "MongoSync Phase",
-                                        "MongoSync Start",
-                                        "MongoSync Finish",
-                                        "Collection Completed %",
+                        cols=5, 
+                        subplot_titles=("Current State", 
+                                        "Current Phase",
+                                        "Start",
+                                        "Finish",
+                                        "Partitions Completed %",
                                         "Total X Copied Data",
                                         "Mongosync Phases",
                                         "Collections Progress"),
-                        specs=[[{}, {}, {}, {}],[{"colspan": 2}, None, {"colspan": 2}, None],[{"colspan": 2}, None, {"colspan": 2}, None]]                                
+                        specs=[[{}, {}, None, {}, {}],[{"colspan": 2}, None, None, {"colspan": 2}, None],[{"colspan": 2}, None, None, {"colspan": 2}, None]]                           
                         )
 
     #Plot mongosync State
@@ -134,13 +135,13 @@ def gatherMetrics():
             logging.warning(vState +" is not listed as an option")
 
 
-    fig.add_trace(go.Scatter(x=[0], y=[0], text=[str(vState.capitalize())], mode='text', name='Mongosync State',textfont=dict(size=20, color=vColor)), row=1, col=1)
+    fig.add_trace(go.Scatter(x=[0], y=[0], text=[str(vState.capitalize())], mode='text', name='Mongosync State',textfont=dict(size=17, color=vColor)), row=1, col=1)
     fig.update_layout(xaxis1=dict(showgrid=False, zeroline=False, showticklabels=False), 
                       yaxis1=dict(showgrid=False, zeroline=False, showticklabels=False))
 
     #Plot Mongosync Phase
     vPhase = vResumeData["syncPhase"].capitalize()
-    fig.add_trace(go.Scatter(x=[0], y=[0], text=[str(vPhase)], mode='text', name='Mongosync State',textfont=dict(size=20, color="black")), row=1, col=2)
+    fig.add_trace(go.Scatter(x=[0], y=[0], text=[str(vPhase)], mode='text', name='Mongosync State',textfont=dict(size=17, color="black")), row=1, col=2)
     fig.update_layout(xaxis2=dict(showgrid=False, zeroline=False, showticklabels=False), 
                       yaxis2=dict(showgrid=False, zeroline=False, showticklabels=False))
 
@@ -159,7 +160,7 @@ def gatherMetrics():
     else:
         newInitial = 'NO DATA'
 
-    fig.add_trace(go.Scatter(x=[0], y=[0], text=[str(newInitial)], mode='text', name='Mongosync Start',textfont=dict(size=20, color="black")), row=1, col=3)
+    fig.add_trace(go.Scatter(x=[0], y=[0], text=[str(newInitial)], mode='text', name='Mongosync Start',textfont=dict(size=17, color="black")), row=1, col=4)
     fig.update_layout(xaxis3=dict(showgrid=False, zeroline=False, showticklabels=False), 
                       yaxis3=dict(showgrid=False, zeroline=False, showticklabels=False))
     
@@ -178,19 +179,23 @@ def gatherMetrics():
     else:
         newFinish = 'NO DATA'
 
-    fig.add_trace(go.Scatter(x=[0], y=[0], text=[str(newFinish)], mode='text', name='Mongosync Finish',textfont=dict(size=20, color="black")), row=1, col=4)
+    fig.add_trace(go.Scatter(x=[0], y=[0], text=[str(newFinish)], mode='text', name='Mongosync Finish',textfont=dict(size=17, color="black")), row=1, col=5)
     fig.update_layout(xaxis4=dict(showgrid=False, zeroline=False, showticklabels=False), 
                       yaxis4=dict(showgrid=False, zeroline=False, showticklabels=False))
 
     #Plot partition data
-    vMatch = {"$match": {"_id.fieldName": "collectionStats", "numCompletedPartitions": {"$gt": 0}, "$expr": {"$ne": ["$numCompletedPartitions", "$numPartitions"]}}}
-    vLookup = {"$lookup": { "from": "uuidMap", "localField": "_id.uuid", "foreignField": "_id", "as": "collectionData"}}
-    vAddFields1 = {"$addFields": {"db": {"$arrayElemAt": ["$collectionData.dstDBName",0]},"coll": {"$arrayElemAt": ["$collectionData.dstCollName",0]}}}
-    vAddFields2 = {"$addFields": {"namespace": {"$concat": ["$db", ".", "$coll"]}, "PercCompleted": {"$divide": [{ "$multiply": ["$numCompletedPartitions", 100] }, "$numPartitions"]}}}
-    vProject = {"$project":{"_id": 0, "namespace": 1, "PercCompleted": 1 }}
-    vPartitionData = internalDbDst.statistics.aggregate([vMatch, vLookup, vAddFields1, vAddFields2, vProject])
-    
+
+    vGroup1 = {"$group": {"_id": {"namespace": {"$concat": ["$namespace.db", ".", "$namespace.coll"]}, "partitionPhase": "$partitionPhase" },  "documentCount": { "$sum": 1 }}}
+    vGroup2 = {"$group": {  "_id": {  "namespace": "$_id.namespace"},  "partitionPhaseCounts": {  "$push": {  "k": "$_id.partitionPhase",  "v": "$documentCount"  }  },  "totalDocumentCount": { "$sum": "$documentCount" }  }  }
+    vAddFields1 = {"$addFields": {"namespace": "$_id.namespace"}}
+    vProject1 = {"$project": {  "_id": 0,"namespace": 1,"totalDocumentCount": 1,  "partitionPhaseCounts":{"$arrayToObject": "$partitionPhaseCounts" }}  }
+    vProject2 = {"$project": {  "_id": 0,"namespace": 1,"totalDocumentCount": 1,  "partitionPhaseCounts": {  "$mergeObjects": [  { "not started": 0, "in progress": 0, "done": 0 },  "$partitionPhaseCounts"  ]  }}  }
+    vAddFields2 = {"$addFields": {"PercCompleted": {"$divide": [{ "$multiply": ["$partitionPhaseCounts.done", 100] }, "$totalDocumentCount"]}}}
+    vSort1 = {"$sort": {"namespace": 1}}
+    vPartitionData = internalDbDst.partitions.aggregate([vGroup1, vGroup2, vAddFields1, vProject1, vProject2, vAddFields2, vSort1])
+
     vPartitionData = list(vPartitionData)
+
     vNamespace = []
     vPercComplete = []
     if len(vPartitionData) == 0:
@@ -208,30 +213,29 @@ def gatherMetrics():
         fig.update_layout(xaxis5=dict(range=[1, 100], dtick=5))
 
     #Plot complete data
-    vMatch = {"$match": {"_id.fieldName": "collectionStats"}}
-    vProject = {"$project":{"_id": 0, "estimatedTotalBytes": 1, "estimatedCopiedBytes": 1 }}
-    vCompleteData = internalDbDst.statistics.aggregate([vMatch, vProject])
+    vGroup = {"$group":{"_id": None, "totalCopiedBytes": { "$sum": "$copiedByteCount" }, "totalBytesCount": { "$sum": "$totalByteCount" }  }}
+    vCompleteData = internalDbDst.partitions.aggregate([vGroup])
     vCompleteData=list(vCompleteData)
     vCopiedBytes=0
     vTotalBytes=0
     vTypeByte=['Copied Data', 'Total Data']
     vBytes=[]
     if len(vCompleteData) == 0:
-        fig.add_trace(go.Scatter(x=[0], y=[0], text="NO DATA", mode='text', textfont=dict(size=30, color="black")), row=2, col=3)
+        fig.add_trace(go.Scatter(x=[0], y=[0], text="NO DATA", mode='text', textfont=dict(size=30, color="black")), row=2, col=4)
         fig.update_layout(xaxis6=dict(showgrid=False, zeroline=False, showticklabels=False), 
                           yaxis6=dict(showgrid=False, zeroline=False, showticklabels=False))
     else:        
         for comp in list(vCompleteData):
-            vCopiedBytes=comp["estimatedCopiedBytes"] + vCopiedBytes
-            vTotalBytes=comp["estimatedTotalBytes"] + vTotalBytes
+            vCopiedBytes=comp["totalCopiedBytes"] + vCopiedBytes
+            vTotalBytes=comp["totalBytesCount"] + vTotalBytes
         vTotalBytes, estimated_total_bytes_unit = format_byte_size(vTotalBytes)
         vCopiedBytes = convert_bytes(vCopiedBytes, estimated_total_bytes_unit)
         vBytes.append(vCopiedBytes)
         vBytes.append(vTotalBytes)
         fig.add_trace(go.Bar(x=vBytes, y=vTypeByte, orientation='h',
-                             marker=dict(color=vBytes, colorscale='redor')), row=2, col=3)
-        fig.update_xaxes(title_text=f"Data in {estimated_total_bytes_unit}", row=2, col=3)
-        fig.update_yaxes(title_text="Copied / Total Data", row=2, col=3)
+                             marker=dict(color=vBytes, colorscale='redor')), row=2, col=4)
+        fig.update_xaxes(title_text=f"Data in {estimated_total_bytes_unit}", row=2, col=4)
+        fig.update_yaxes(title_text="Copied / Total Data", row=2, col=4)
         fig.update_layout(xaxis6=dict(range=[0, vTotalBytes]))
 
     #Plot phase transitions
@@ -240,6 +244,7 @@ def gatherMetrics():
                   "cond":{"$or": [{"$eq": ["$$phaseTransitions.phase", "initializing collections and indexes"]},
                                   {"$eq": ["$$phaseTransitions.phase", "initializing partitions"]},
                                   {"$eq": ["$$phaseTransitions.phase", "collection copy"]},
+                                  {"$eq": ["$$phaseTransitions.phase", "waiting to start change event application"]},
                                   {"$eq": ["$$phaseTransitions.phase", "change event application"]},
                                   {"$eq": ["$$phaseTransitions.phase", "waiting for commit to complete"]},
                                   {"$eq": ["$$phaseTransitions.phase", "commit completed"]}
@@ -263,43 +268,50 @@ def gatherMetrics():
         fig.add_trace(go.Scatter(x=vTs, y=vPhase, mode='markers+text',marker=dict(color='green')), row=3, col=1)
     
     #Colection Progress
-    vMatch = {"$match": {"_id.fieldName": "collectionStats"}}
-    vAddFields = {"$addFields": {"notStarted": {"$cond": { "if": { "$eq": ["$estimatedCopiedBytes", 0] }, "then": 1, "else": 0}},"inProgress": {"$cond": { "if": { "$ne": ["$estimatedCopiedBytes", 0] }, "then": 1, "else": 0}}, "completed": {"$cond": { "if": { "$eq": ["$estimatedCopiedBytes", 0] }, "then": 1, "else": 0}}}}
-    vGroup = {"$group": {"_id": None, "notStarted": {"$sum": "$notStarted"}, "inProgress": {"$sum": "$inProgress"}, "completed": {"$sum": "$completed"}}}
-    vProject = {"$project":{"_id": 0, "notStarted": 1, "inProgress": 1,  "completed": 1}}
-    vCollectionData = internalDbDst.statistics.aggregate([vMatch, vAddFields, vGroup, vProject])
+    vProject1 = {"$project": {  "namespace": {  "$concat": ["$namespace.db", ".", "$namespace.coll"]  },  "partitionPhase": 1  }}
+    vGroup1 = {"$group": {  "_id": "$namespace",  "phases": { "$addToSet": "$partitionPhase" }  } }
+    vProject2 = {"$project": {  "_id": 0,  "namespace": "$_id",  "phases": {  "$arrayToObject": {  "$map": {  "input": "$phases",  "as": "phase",  "in": { "k": "$$phase", "v": 1 }  }  }  }  }}
+    vProject3 = {"$project": {  "_id": 0,"namespace": 1,  "phases": {  "$mergeObjects": [  { "not started": 0, "in progress": 0, "done": 0 },  "$phases"  ]  }}  }
+
+    vCollectionData = internalDbDst.partitions.aggregate([vProject1, vGroup1, vProject2, vProject3])
+
     vCollectionData = list(vCollectionData)
+
     vTypeProc=[]
     vTypeValue=[]
     if len(vCollectionData) == 0:
-        fig.add_trace(go.Scatter(x=[0], y=[0], text="NO DATA", mode='text', textfont=dict(size=30, color="black")), row=3, col=3)
+        fig.add_trace(go.Scatter(x=[0], y=[0], text="NO DATA", mode='text', textfont=dict(size=30, color="black")), row=3, col=4)
         fig.update_layout(xaxis8=dict(showgrid=False, zeroline=False, showticklabels=False), 
                           yaxis8=dict(showgrid=False, zeroline=False, showticklabels=False))
-    else:        
+    else:
+        NotStarted = 0
+        InProgress = 0
+        Done = 0
         for collec in vCollectionData:
-            vTypeProc.append("notStarted")
-            vTypeValue.append(collec["notStarted"])
-            vTypeProc.append("inProgress")
-            vTypeValue.append(collec["inProgress"])
-            vTypeProc.append("completed")
-            vTypeValue.append(collec["completed"])
+            if ((collec["phases"]["in progress"] == 1) or (collec["phases"]["not started"] == 1 and collec["phases"]["done"] == 1)):
+                InProgress += 1
+            elif (collec["phases"]["not started"] == 1 and collec["phases"]["done"] != 1):
+                NotStarted += 1
+            else:
+                Done += 1
+            
+        vTypeProc.append("Not Started")
+        vTypeValue.append(NotStarted)
+        vTypeProc.append("In Progress")
+        vTypeValue.append(InProgress)
+        vTypeProc.append("Completed")
+        vTypeValue.append(Done)
         xMin = min(vTypeValue)
         xMax = max(vTypeValue)
-        #padding = int((xMax - xMin) * 0.2) if xMin != xMax else int(xMax * 0.2)
-        #if padding == 0:
-        #    padding = 5
+
         fig.add_trace(go.Bar(x=vTypeValue, y=vTypeProc, orientation='h',
-                             marker=dict(color=vTypeValue, colorscale='OrRd')), row=3, col=3)
-        fig.update_xaxes(title_text=f"Totals", row=3, col=3)
-        fig.update_yaxes(title_text="Process", row=3, col=3)
-        fig.update_layout(xaxis8=dict(range=[0, xMax])) # fig.update_layout(xaxis8=dict(range=[0, xMax + padding])) 
-
-
-    fig.update_layout(showlegend=False,
-                      plot_bgcolor="white")
+                             marker=dict(color=vTypeValue, colorscale='Oryel')), row=3, col=4)
+        fig.update_xaxes(title_text=f"Totals", row=3, col=4)
+        fig.update_yaxes(title_text="Process", row=3, col=4)
+        fig.update_layout(xaxis8=dict(range=[0, xMax])) 
     
     # Update layout
-    fig.update_layout(height=900, width=1600, title_text="Replication Progress")
+    fig.update_layout(height=900, width=1600, autosize=False, title_text="Mongosync Replication Progress", showlegend=False, plot_bgcolor="white")
     
     # Convert the figure to JSON
     plot_json = json.dumps(fig, cls=PlotlyJSONEncoder)
@@ -314,7 +326,7 @@ def plotMetrics():
             <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
             <style>
                 #plot {
-                    width: 1500px;
+                    width: 1600px;
                     height: 1800px;
                     margin: auto;
                 }
