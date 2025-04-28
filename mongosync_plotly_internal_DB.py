@@ -81,6 +81,7 @@ def upload_form():
                     <input type="submit" value="Metrics Now">
                     <br/>
                     <br/>
+                    <img src="static/mongosync_metadata.png" width="890" height="479">
                 </form>
             </body>
         </html>

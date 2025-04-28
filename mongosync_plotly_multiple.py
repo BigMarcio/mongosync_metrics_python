@@ -78,7 +78,7 @@ def upload_form():
                     <p>This form allows you to upload a mongosync log file. Once the file is uploaded, the application will process the data and generate plots.</p>
                     <br/>
                     <br/>
-                    <img src="static/image-1.png" width="624" height="913">
+                    <img src="static/mongosync_log_analyzer.png" width="624" height="913">
                 </form>
             </body>
         </html>
