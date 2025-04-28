@@ -153,6 +153,7 @@ def upload_file():
             for line in lines 
             if regex_pattern.search(json.loads(line).get('message', ''))
         ]
+        print (mongosync_sent_response)
 
         # Load lines with 'message' == "Mongosync HiddenFlags"
         regex_pattern = re.compile(r"Mongosync HiddenFlags", re.IGNORECASE)
@@ -167,6 +168,7 @@ def upload_file():
         for response in mongosync_sent_response:
             mongosync_sent_response_body  = json.loads(response['body'])
             # Now you can work with the 'body' data
+        print (mongosync_sent_response_body)
 
         # Create a string with all the Mongosync Options information
         mongosync_opts_text = "\n".join([json.dumps(item, indent=4) for item in mongosync_opts_list])
@@ -192,11 +194,6 @@ def upload_file():
                 cells=dict(values=[keys, values],  align=['left'], font=dict(size=10, color='darkblue')), #
                 columnwidth=[0.75, 2.5]  # Adjust the column widths as needed
             )
-
-            # Extract the data you want to plot
-            times = [datetime.strptime(item['time'][:26], "%Y-%m-%dT%H:%M:%S.%f") for item in data if 'time' in item]
-            totalEventsApplied = [item['totalEventsApplied'] for item in data if 'totalEventsApplied' in item]
-            lagTimeSeconds = [item['lagTimeSeconds'] for item in data if 'lagTimeSeconds' in item]
         else:
             #print("mongosync_hiddenflags is empty")
             table_hiddenflags = go.Table(
@@ -214,11 +211,6 @@ def upload_file():
                 cells=dict(values=[keys, values], font=dict(size=10, color='darkblue')),
                 columnwidth=[0.75, 2.5]  # Adjust the column widths as needed
             )
-
-            # Extract the data you want to plot
-            times = [datetime.strptime(item['time'][:26], "%Y-%m-%dT%H:%M:%S.%f") for item in data if 'time' in item]
-            totalEventsApplied = [item['totalEventsApplied'] for item in data if 'totalEventsApplied' in item]
-            lagTimeSeconds = [item['lagTimeSeconds'] for item in data if 'lagTimeSeconds' in item]
 
             # If the key is 'hiddenFlags', extract its keys and values and add them to the keys and values lists
             for i, key in enumerate(keys):
