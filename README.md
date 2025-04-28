@@ -1,6 +1,6 @@
 # mongosync_metrics_python
 
-This project contains two Python scripts: `mongosync_plotly_multiple.py` and `mongosync_plotly_internal_DB.py`, that processes the `mongosync` data and generates various plots using Plotly on port **3030**. The script also includes a Dockerfile for containerizing the application and a `requirements.txt` file listing the Python dependencies.
+This project contains two Python scripts: `mongosync_plotly_multiple.py` and `mongosync_plotly_internal_DB.py`, which process the `mongosync` data and generate various plots using Plotly on port **3030**. The script also includes a Dockerfile for containerizing the application and a `requirements.txt` file listing the Python dependencies.
 
 ## mongosync_plotly_multiple.py
 
@@ -49,7 +49,7 @@ The application provides a user interface for uploading the `mongosync` log file
 
 ## Reading the Metadata
 
-Before running the script `mongosync_plotly_internal_DB.py` change the variable `TARGET_MONGO_URI` to use the target's connection string. 
+Before running the script `mongosync_plotly_internal_DB.py`, change the variable `TARGET_MONGO_URI` to use the target's connection string. 
 Once the script is running, click the "Metrics Now" button and wait for the page to refresh.
 
 ## Viewing the Plot Information
