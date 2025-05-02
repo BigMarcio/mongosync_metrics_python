@@ -135,7 +135,6 @@ def gatherMetrics():
         case _:
             logging.warning(vState +" is not listed as an option")
 
-
     fig.add_trace(go.Scatter(x=[0], y=[0], text=[str(vState.capitalize())], mode='text', name='Mongosync State',textfont=dict(size=17, color=vColor)), row=1, col=1)
     fig.update_layout(xaxis1=dict(showgrid=False, zeroline=False, showticklabels=False), 
                       yaxis1=dict(showgrid=False, zeroline=False, showticklabels=False))
@@ -312,7 +311,7 @@ def gatherMetrics():
         fig.update_layout(xaxis8=dict(range=[0, xMax])) 
     
     # Update layout
-    fig.update_layout(height=900, width=1600, autosize=False, title_text="Mongosync Replication Progress", showlegend=False, plot_bgcolor="white")
+    fig.update_layout(height=900, width=1600, autosize=False, title_text="Mongosync Replication Progress - Timezone info: UTC", showlegend=False, plot_bgcolor="white")
     
     # Convert the figure to JSON
     plot_json = json.dumps(fig, cls=PlotlyJSONEncoder)
