@@ -1,101 +1,20 @@
 import plotly.graph_objects as go
-import plotly.subplots as sp
-from plotly.io import write_image
 from plotly.utils import PlotlyJSONEncoder
 from plotly.subplots import make_subplots
-from tqdm import tqdm
-from flask import Flask, request, redirect, url_for, render_template_string, send_from_directory
+from flask import render_template_string
 import json
-from datetime import datetime
-import io
-import base64
-from werkzeug.utils import secure_filename
-import matplotlib.pyplot as plt
-import os
-import re
 import logging
 from pymongo import MongoClient
 from pymongo.errors import PyMongoError
-import pandas as pd
+from mongosync_plot_utils import format_byte_size, convert_bytes
 
-
-def format_byte_size(bytes):
-    # Define the conversion factors
-    kilobyte = 1024
-    megabyte = kilobyte * 1024
-    gigabyte = megabyte * 1024
-    terabyte = gigabyte * 1024
-    # Determine the appropriate unit and calculate the value
-    if bytes >= terabyte:
-        value = bytes / terabyte
-        unit = 'TeraBytes'
-    elif bytes >= gigabyte:
-        value = bytes / gigabyte
-        unit = 'GigaBytes'
-    elif bytes >= megabyte:
-        value = bytes / megabyte
-        unit = 'MegaBytes'
-    elif bytes >= kilobyte:
-        value = bytes / kilobyte
-        unit = 'KiloBytes'
-    else:
-        value = bytes
-        unit = 'Bytes'
-    # Return the value rounded to two decimal places and the unit separately
-    return round(value, 4), unit
-
-def convert_bytes(bytes, target_unit):
-    # Define conversion factors
-    kilobyte = 1024
-    megabyte = kilobyte * 1024
-    gigabyte = megabyte * 1024
-    terabyte = gigabyte * 1024
-    # Perform conversion based on target unit
-    if target_unit == 'KiloBytes':
-        value = bytes / kilobyte
-    elif target_unit == 'MegaBytes':
-        value = bytes / megabyte
-    elif target_unit == 'GigaBytes':
-        value = bytes / gigabyte
-    elif target_unit == 'TeraBytes':
-        value = bytes / terabyte
-    else:
-        value = bytes
-    # Return the converted value rounded to two decimal places and the unit
-    return round(value, 4)
-
-
-# Create a Flask app
-app = Flask(__name__)
-
-@app.route('/')
-def upload_form():
-    # Return a simple file upload form
-    return render_template_string('''
-        <html>
-            <head>
-                <title>Mongosync Internal DB Metrics</title>
-            </head>
-            <body>
-                <form method="post" action="/renderMetrics" enctype="multipart/form-data">
-                    <input type="submit" value="Metrics Now">
-                    <br/>
-                    <br/>
-                    <img src="static/mongosync_metadata.png" width="890" height="479">
-                </form>
-            </body>
-        </html>
-    ''')
-
-
-@app.route('/get_metrics_data', methods=['POST'])
 def gatherMetrics():
     logging.basicConfig(filename='mongosync_monitor.log', level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s')
     #TARGET_MONGO_URI = "mongodb+srv://poc:poc@syncmonitor.qteeb.mongodb.net/?retryWrites=true&w=majority&appName=syncMonitor&timeoutMS=10900000&connectTimeoutMS=10800000"
     #TARGET_MONGO_URI = "mongodb://127.0.0.1:27020,127.0.0.1:27021,127.0.0.1:27022/"
-    #TARGET_MONGO_URI = "mongodb://127.0.0.1:27023,127.0.0.1:27024,127.0.0.1:27025/"
-    TARGET_MONGO_URI = "mongodb://127.0.0.1:27026,127.0.0.1:27027,127.0.0.1:27028/"
+    TARGET_MONGO_URI = "mongodb://127.0.0.1:27023,127.0.0.1:27024,127.0.0.1:27025/"
+    #TARGET_MONGO_URI = "mongodb://127.0.0.1:27026,127.0.0.1:27027,127.0.0.1:27028/"
     internalDb = "mongosync_reserved_for_internal_use"
     colors = ['red', 'blue', 'green', 'orange', 'yellow']
     # Connect to MongoDB cluster
@@ -311,35 +230,75 @@ def gatherMetrics():
         fig.update_layout(xaxis8=dict(range=[0, xMax])) 
     
     # Update layout
-    fig.update_layout(height=900, width=1600, autosize=False, title_text="Mongosync Replication Progress - Timezone info: UTC", showlegend=False, plot_bgcolor="white")
+    fig.update_layout(height=800, width=1450, autosize=True, title_text="Mongosync Replication Progress - Timezone info: UTC", showlegend=False, plot_bgcolor="white")
     
     # Convert the figure to JSON
     plot_json = json.dumps(fig, cls=PlotlyJSONEncoder)
     return plot_json
 
-@app.route('/renderMetrics', methods=['POST'])
+
 def plotMetrics():
     return render_template_string('''
-        <html>
-        <head>
-            <title>Mongosync Internal DB Metrics</title>
-            <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-            <style>
-                #plot {
-                    width: 1600px;
-                    height: 1800px;
-                    margin: auto;
-                }
-                #loading {
-                    text-align: center;
-                    font-size: 24px;
-                    margin-top: 50px;
-                }
-            </style>
-        </head>
-        <body>
-            <div id="loading">Loading metrics...</div>
-            <div id="plot" style="display:none;"></div>
+            <!DOCTYPE html>  
+            <html lang="en">  
+            <head>  
+                <meta charset="UTF-8">  
+                <title>Mongosync Metrics Visualization</title>  
+                <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>  
+
+                <style>  
+                    body {  
+                        font-family: Arial, sans-serif;  
+                        margin: 0;  
+                        padding: 0;  
+                        background-color: #f4f4f9; /* Light background for good contrast */  
+                        color: #333; /* Dark text for readability */  
+                    }  
+            
+                    header {  
+                        background-color: #005d95;  
+                        color: #fff;  
+                        padding: 10px 20px;  
+                        text-align: center;  
+                    }  
+            
+                    main {  
+                        padding: 20px;  
+                    }  
+            
+                    #plot {  
+                        margin: 0 auto;  
+                        max-width: 1450px;  
+                        border: 1px solid #ccc; /* Add border for distinction */  
+                        border-radius: 8px; /* Rounded corners */  
+                        background-color: #fff;  
+                        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */  
+                    }  
+            
+                    footer {  
+                        text-align: center;  
+                        padding: 10px;  
+                        margin-top: 20px;  
+                        background-color: #005d95;  
+                        color: #fff;  
+                    }  
+            
+                    @media (max-width: 768px) {  
+                        #plot {  
+                            width: 95%; /* Make responsive for smaller screens */  
+                        }  
+                    }  
+                </style>  
+            </head>  
+                                  
+            <body>  
+                <header>  
+                    <h1>Mongosync Metrics - Metadata</h1>  
+                </header>  
+                <main>  
+                    <div id="loading">Loading metrics...</div>
+                    <div id="plot" style="display:none;"></div>
+
             <script>
                 async function fetchPlotData() {
                     try {
@@ -357,12 +316,11 @@ def plotMetrics():
                 fetchPlotData(); // initial load
                 setInterval(fetchPlotData, 10000); // update every 10 seconds
             </script>
-        </body>
-        </html>
+
+            </main>  
+                <footer>  
+                    <!-- <p>&copy; 2023 MongoDB. All rights reserved.</p>  -->
+                </footer>  
+            </body>  
+            </html>  
     ''')
-
-
-
-if __name__ == '__main__':
-    # Run the Flask app
-    app.run(host='0.0.0.0', port=3030)

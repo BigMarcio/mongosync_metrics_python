@@ -1,90 +1,13 @@
 import plotly.graph_objects as go
-import plotly.subplots as sp
-from plotly.io import write_image
 from plotly.utils import PlotlyJSONEncoder
 from plotly.subplots import make_subplots
 from tqdm import tqdm
-from flask import Flask, request, redirect, url_for, render_template_string, send_from_directory
+from flask import request, redirect, render_template_string
 import json
 from datetime import datetime
-import io
-import base64
-from werkzeug.utils import secure_filename
-import matplotlib.pyplot as plt
-import os
 import re
+from mongosync_plot_utils import format_byte_size, convert_bytes
 
-def format_byte_size(bytes):
-    # Define the conversion factors
-    kilobyte = 1024
-    megabyte = kilobyte * 1024
-    gigabyte = megabyte * 1024
-    terabyte = gigabyte * 1024
-    # Determine the appropriate unit and calculate the value
-    if bytes >= terabyte:
-        value = bytes / terabyte
-        unit = 'TeraBytes'
-    elif bytes >= gigabyte:
-        value = bytes / gigabyte
-        unit = 'GigaBytes'
-    elif bytes >= megabyte:
-        value = bytes / megabyte
-        unit = 'MegaBytes'
-    elif bytes >= kilobyte:
-        value = bytes / kilobyte
-        unit = 'KiloBytes'
-    else:
-        value = bytes
-        unit = 'Bytes'
-    # Return the value rounded to two decimal places and the unit separately
-    return round(value, 4), unit
-
-def convert_bytes(bytes, target_unit):
-    # Define conversion factors
-    kilobyte = 1024
-    megabyte = kilobyte * 1024
-    gigabyte = megabyte * 1024
-    terabyte = gigabyte * 1024
-    # Perform conversion based on target unit
-    if target_unit == 'KiloBytes':
-        value = bytes / kilobyte
-    elif target_unit == 'MegaBytes':
-        value = bytes / megabyte
-    elif target_unit == 'GigaBytes':
-        value = bytes / gigabyte
-    elif target_unit == 'TeraBytes':
-        value = bytes / terabyte
-    else:
-        value = bytes
-    # Return the converted value rounded to two decimal places and the unit
-    return round(value, 4)
-
-
-# Create a Flask app
-app = Flask(__name__)
-
-@app.route('/')
-def upload_form():
-    # Return a simple file upload form
-    return render_template_string('''
-        <html>
-            <head>
-                <title>Mongosync Metrics</title>
-            </head>
-            <body>
-                <form method="post" action="/upload" enctype="multipart/form-data">
-                    <input type="file" name="file">
-                    <input type="submit" value="Upload">
-                    <p>This form allows you to upload a mongosync log file. Once the file is uploaded, the application will process the data and generate plots.</p>
-                    <br/>
-                    <br/>
-                    <img src="static/mongosync_log_analyzer.png" width="624" height="913">
-                </form>
-            </body>
-        </html>
-    ''')
-
-@app.route('/upload', methods=['POST'])
 def upload_file():
     # Check if a file was uploaded
     if 'file' not in request.files:
@@ -314,27 +237,80 @@ def upload_file():
             )
         )
 
-
         # Convert the figure to JSON
         plot_json = json.dumps(fig, cls=PlotlyJSONEncoder)
 
         # Render the plot in the browser
         return render_template_string('''
-            <html>
-                <head>
-                    <title>Mongosync Metrics</title>
-                </head>
-            <body>
-                    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-                    <div id="plot"></div>
+            <!DOCTYPE html>  
+            <html lang="en">  
+            <head>  
+                <meta charset="UTF-8">  
+                <title>Mongosync Metrics Visualization</title>  
+                <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>  
+                <style>  
+                    body {  
+                        font-family: Arial, sans-serif;  
+                        margin: 0;  
+                        padding: 0;  
+                        background-color: #f4f4f9; /* Light background for good contrast */  
+                        color: #333; /* Dark text for readability */  
+                    }  
+            
+                    header {  
+                        background-color: #005d95;  
+                        color: #fff;  
+                        padding: 10px 20px;  
+                        text-align: center;  
+                    }  
+            
+                    main {  
+                        padding: 20px;  
+                    }  
+            
+                    #plot {  
+                        margin: 0 auto;  
+                        max-width: 1250px;  
+                        border: 1px solid #ccc; /* Add border for distinction */  
+                        border-radius: 8px; /* Rounded corners */  
+                        background-color: #fff;  
+                        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */  
+                    }  
+            
+                    footer {  
+                        text-align: center;  
+                        padding: 10px;  
+                        margin-top: 20px;  
+                        background-color: #005d95;  
+                        color: #fff;  
+                    }  
+            
+                    @media (max-width: 768px) {  
+                        #plot {  
+                            width: 95%; /* Make responsive for smaller screens */  
+                        }  
+                    }  
+                </style>  
+            </head>  
+            <body>  
+                <header>  
+                    <h1>Mongosync Metrics - Logs</h1>  
+                </header>  
+                <main>  
+                    <div id="plot"></div>  
                     <script>
                     var plot = {{ plot_json | safe }};
                     Plotly.newPlot('plot', plot.data, plot.layout);
                     </script>
-            </body>
+                </main>  
+                <footer>  
+                    <!-- <p>&copy; 2023 MongoDB. All rights reserved.</p>  -->
+                </footer>  
+            </body>  
+            </html>  
         ''', plot_json=plot_json)
     
-@app.route('/plot')
+""" @app.route('/plot')
 def serve_plot():
     file_path = os.path.join(app.static_folder, 'plot.png')
     print(file_path)  # print the file path
@@ -342,8 +318,4 @@ def serve_plot():
     if os.path.exists(file_path):
         return send_from_directory(app.static_folder, 'plot.png')
     else:
-        return "File not found", 404
-
-if __name__ == '__main__':
-    # Run the Flask app
-    app.run(host='0.0.0.0', port=3030)
+        return "File not found", 404 """
