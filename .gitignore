@@ -2,3 +2,4 @@ mongosync_plotly_multiple copy.py
 mongosync_monitor.log
 mongosync_plotly_internal_DB copy.py
 __pycache__/
+dockerfile copy
