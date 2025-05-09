@@ -56,7 +56,7 @@ def upload_form():
                 <div class="form-container">  
                     <!-- First form: File upload -->  
                     <form method="post" action="/upload" enctype="multipart/form-data">  
-                        <h2>Upload File</h2>  
+                        <h2>Upload Mongosync Log File</h2>  
                         <input type="file" name="file"><br><br>  
                         <input type="submit" value="Upload">  
                         <p>This form allows you to upload a mongosync log file. Once the file is uploaded, the application will process the data and generate plots.</p>  
@@ -65,7 +65,7 @@ def upload_form():
         
                     <!-- Second form: Metrics rendering -->  
                     <form method="post" action="/renderMetrics" enctype="multipart/form-data">  
-                        <h2>Render Metrics</h2>  
+                        <h2>Render Metada Metrics</h2>  
                         <input type="submit" value="Read Metadata">  
                         <p>Click this button to generate the plost using mongosync metadata.</p>
                         <img src="static/mongosync_metadata.png" width="300" alt="Mongosync Log Analyzer">
