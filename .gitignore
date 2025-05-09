@@ -1,2 +1,4 @@
 mongosync_plotly_multiple copy.py
-README copy.md 
+mongosync_monitor.log
+mongosync_plotly_internal_DB copy.py
+__pycache__/
