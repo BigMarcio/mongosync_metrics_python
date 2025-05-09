@@ -31,7 +31,7 @@ This command should be run in the Python environment where you want to run the s
 1. Clone the repository to your local machine.
 2. Navigate to the directory containing the Python script and the `requirements.txt` file.
 3. Install the dependencies with `pip install -r requirements.txt`.
-4. Run one of the Python scripts.
+4. Run the script `python3 mongosync_plot.py`.
 
 Please note that you need to have Python and pip installed on your machine to run the script and install the dependencies.
 
@@ -39,7 +39,7 @@ Please note that you need to have Python and pip installed on your machine to ru
 
 Once the application is running, you can access it by opening a web browser and navigating to `http://localhost:3030`. This assumes that the application is running on the same machine where you're opening the browser, and that it's configured to listen on port 3030.
 
-![Mongosync Logs Analyzer](static/mongosync_logs_home.png)
+![Mongosync Logs Analyzer](static/mongosync_metrics_home.png)
 
 ## Uploading the mongosync Log File
 
@@ -47,8 +47,8 @@ The application provides a user interface for uploading the `mongosync` log file
 
 ## Reading the Metadata
 
-Before running the script `mongosync_plotly_internal_DB.py`, change the variable `TARGET_MONGO_URI` to use the target's connection string. 
-Once the script is running, click the "Metrics Now" button and wait for the page to refresh.
+Before running the script, change the variable `TARGET_MONGO_URI` in `mongosync_plot_metadata.py`, to use the target's connection string. 
+Once the script is running, click the "Read Metadata" button and wait for the page to refresh.
 
 ## Viewing the Plot Information
 
